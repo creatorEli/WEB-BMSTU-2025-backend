@@ -93,6 +93,7 @@ func (r *Repository) AddArmyToTT(idArmy int, idTT int, kilometers int) error {
 		fmt.Errorf("ошибка при добавлении армии в расчёт!: %w", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -136,7 +137,12 @@ func (r *Repository) EditArmy(army ds.Army) (ds.Army, error) {
 		fmt.Errorf("ошибка при обновлении армии!: %w", err)
 		return ds.Army{}, err
 	}
-	return army, nil
+	armyRes, err := r.GetArmy(army.ArmyID)
+	if err != nil {
+		fmt.Errorf("ошибка при обновлении армии!: %w", err)
+		return ds.Army{}, err
+	}
+	return armyRes, nil
 }
 
 func (r *Repository) DeleteArmy(idArmy int) error {

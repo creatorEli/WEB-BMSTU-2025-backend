@@ -35,7 +35,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутиза�
 	router.POST("/api/army/:id/upload_image", h.uploadArmyImage) // добавление изображения к армии
 
 	//timeToTravel
-	router.GET("/api/travel_time", h.GetTravelTimeDraft)                  // получить id черновика и кол-во услуг в нем
+	router.GET("/api/travel_time", h.GetTravelTimeDraft) // получить id черновика и кол-во услуг в нем
+	//ПОЛУЧАТЬ ОТВЕТ ОБ ОТСТУТСТВИИ ЧЕРНОВИКА И БЕЗ ID
 	router.GET("/api/travel_times", h.GetTravelTimes)                     // список (кроме удаленных и черновика, поля модератора и создателя через логины) с фильтрацией по диапазону даты формирования и статусу
 	router.GET("/api/travel_time/:ttid", h.GetTravelTime)                 //одна запись (поля заявки + ее услуги). При получении заявки возвращется список ее услуг с картинками
 	router.PUT("/api/travel_time/:ttid", h.UpdateTravelTime)              //изменения полей заявки по теме

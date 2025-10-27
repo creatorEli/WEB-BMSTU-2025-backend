@@ -14,6 +14,15 @@ func (r *Repository) GetHistorianByLogin(login string) (ds.Historian, error) {
 	return historian, nil
 }
 
+func (r *Repository) GetHistorianByID(HisID int) (ds.Historian, error) {
+	historian := ds.Historian{}
+	err := r.db.Where("historian_id = ?", HisID).First(&historian).Error
+	if err != nil {
+		return ds.Historian{}, err
+	}
+	return historian, nil
+}
+
 func (r *Repository) AuthHistorian(login string, password string) (ds.Historian, error) {
 	historian := ds.Historian{}
 	err := r.db.Where("his_login = ? AND his_password = ?", login, password).First(&historian).Error

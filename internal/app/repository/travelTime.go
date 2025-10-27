@@ -93,8 +93,13 @@ func (r *Repository) GetTTDraft(creatorID int) (ds.TravelTime, error) {
 
 	err := r.db.Model(&ds.TravelTime{}).Where("Creator_ID_tt = ? AND Status_tt = ?", creatorID, "черновик").First(&resultTT).Error
 	if err != nil {
-		return ds.TravelTime{}, err
+		if err.Error() == "record not found" {
+			return ds.TravelTime{}, fmt.Errorf("404")
+		} else {
+			return ds.TravelTime{}, err
+		}
 	}
+	logrus.Info(err)
 	return resultTT, nil
 }
 

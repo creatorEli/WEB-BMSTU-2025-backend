@@ -145,6 +145,7 @@ func (h *Handler) UpdateArmy(c *gin.Context) {
 	if err != nil {
 		logrus.Error(err)
 	}
+	logrus.Info(armyToChange)
 
 	var armyToAdd ds.Army
 	err = c.ShouldBindJSON(&armyToAdd) // считаем, что принимаем данные в формате JSON
@@ -171,6 +172,10 @@ func (h *Handler) UpdateArmy(c *gin.Context) {
 	resArmy, err := h.Repository.EditArmy(armyToChange)
 	if err != nil {
 		logrus.Error("не удалось обновить армию!")
+		c.JSON(500, gin.H{
+			"error": err,
+		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"army": resArmy,
@@ -261,8 +266,18 @@ func (h *Handler) addArmyToTT(c *gin.Context) {
 		return
 	}
 
+	resDraft, err := h.Repository.GetTravelTime(idDraft)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error":   err,
+			"message": "Не удалось получить черновик расчёта",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Армия добавлена в расчёт",
+		"message":     "Армия добавлена в расчёт",
+		"travel_time": resDraft,
 	})
 }
 

@@ -79,7 +79,7 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, UploadResponse{
 			Success: false,
-			Message: "Invalid request: " + err.Error(),
+			Message: "Неверный запрос: " + err.Error(),
 		})
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 	if !isImageFile(req.Image) {
 		c.JSON(http.StatusBadRequest, UploadResponse{
 			Success: false,
-			Message: "File must be an image (JPEG, PNG, GIF)",
+			Message: "Файл должен быть картинкой (JPEG, PNG, GIF)",
 		})
 		return
 	}
@@ -96,7 +96,7 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 	if req.Image.Size > 10<<20 {
 		c.JSON(http.StatusBadRequest, UploadResponse{
 			Success: false,
-			Message: "File size too large. Maximum 10MB allowed",
+			Message: "Слишком большой размер файла. Максимальный размер 10 МБ",
 		})
 		return
 	}
@@ -105,7 +105,7 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, UploadResponse{
 			Success: false,
-			Message: "Failed to upload image: " + err.Error(),
+			Message: "Не удалось загрузить изображение: " + err.Error(),
 		})
 		return
 	}
@@ -123,14 +123,14 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, UploadResponse{
 			Success: false,
-			Message: "Failed to set image url in db: " + err.Error(),
+			Message: "Не удалось установить URI изображения в базе данных: " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, UploadResponse{
 		Success:  true,
-		Message:  "Image uploaded successfully",
+		Message:  "Изображение успешно добавлено",
 		FileName: req.Image.Filename,
 		FileURL:  fileURL,
 		FileSize: req.Image.Size,

@@ -1,0 +1,716 @@
+basePath: /api
+definitions:
+  ds.Army:
+    properties:
+      ArmyID:
+        type: integer
+      ClassArmy:
+        description: для фильтрации
+        type: string
+      DescriptionArmy:
+        type: string
+      ImageArmyUrl:
+        type: string
+      MaxDesertSpeed:
+        description: Пустыня Максимальная
+        type: integer
+      MaxForestSpeed:
+        description: Лес Максимальная
+        type: integer
+      MaxMountSpeed:
+        description: Горы Максимальная
+        type: integer
+      MaxPlainSpeed:
+        description: Равнина Максимальная
+        type: integer
+      MaxRiverSpeed:
+        description: Река Максимальная
+        type: integer
+      MinDesertSpeed:
+        description: Пустыня минимальная
+        type: integer
+      MinForestSpeed:
+        description: Лес минимальная
+        type: integer
+      MinMountSpeed:
+        description: Горы минимальная
+        type: integer
+      MinPlainSpeed:
+        description: 'скорости для каждого типа местности:'
+        type: integer
+      MinRiverSpeed:
+        description: Река минимальная
+        type: integer
+      NameArmy:
+        type: string
+      StatusArmy:
+        description: 'status: удален/действует'
+        type: string
+    type: object
+  ds.Historian:
+    properties:
+      historianUUID:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/role.Role'
+        description: HisIsModerator bool      `gorm:"type:boolean;default:false" json:"is_moderator"`
+    type: object
+  ds.TravelTime:
+    properties:
+      ChosenBiomTT:
+        description: '"Desert", "Plain", "Mount", "Forest", "River"'
+        type: string
+      DistanceTT:
+        type: integer
+      ResultChronical:
+        type: integer
+      ResultMaxTT:
+        type: integer
+      ResultMinTT:
+        type: integer
+      StatusTT:
+        description: '5 статусов: черновик, удален, сформирован, завершен, отклонен'
+        type: string
+      creatorID_TT:
+        type: integer
+      creatorTT:
+        $ref: '#/definitions/ds.Historian'
+      dateCreateTT:
+        type: string
+      dateFinishTT:
+        type: string
+      dateUpdateTT:
+        type: string
+      moderatorID_TT:
+        type: integer
+      moderatorTT:
+        $ref: '#/definitions/ds.Historian'
+      ttID:
+        type: integer
+    type: object
+  handler.ArmyResSw:
+    properties:
+      army:
+        $ref: '#/definitions/ds.Army'
+    type: object
+  handler.HisSw:
+    properties:
+      historian:
+        $ref: '#/definitions/ds.Historian'
+    type: object
+  handler.MesHisLPMSw:
+    properties:
+      historian:
+        $ref: '#/definitions/ds.Historian'
+      message:
+        type: string
+    type: object
+  handler.ResDraftSw:
+    properties:
+      message:
+        type: string
+      travel_time:
+        $ref: '#/definitions/ds.TravelTime'
+    type: object
+  handler.TTplusMessage:
+    properties:
+      message:
+        type: string
+      travel_time:
+        $ref: '#/definitions/ds.TravelTime'
+    type: object
+  handler.UploadResponse:
+    properties:
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_url:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handler.idDraftCountArmies:
+    properties:
+      countArmies:
+        type: integer
+      ttid:
+        type: integer
+    type: object
+  handler.message:
+    properties:
+      message:
+        type: string
+    type: object
+  handler.resultsStr:
+    properties:
+      chosenBiomTT:
+        type: string
+      creatorLogin:
+        type: string
+      dateCreateTT:
+        type: string
+      dateFinishTT:
+        type: string
+      dateUpdateTT:
+        type: string
+      distanceTT:
+        type: integer
+      moderatorLogin:
+        type: string
+      resultChronical:
+        type: integer
+      resultMaxTT:
+        type: integer
+      resultMinTT:
+        type: integer
+      statusTT:
+        description: '5 статусов: черновик, удален, сформирован, завершен, отклонен'
+        type: string
+      ttID:
+        type: integer
+    type: object
+  handler.ttToresultsStrPlusArmies:
+    properties:
+      list_armies:
+        items:
+          $ref: '#/definitions/ds.Army'
+        type: array
+      time_travel:
+        $ref: '#/definitions/handler.resultsStr'
+    type: object
+  role.Role:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-comments:
+      Historian: "0"
+      Moderator: "1"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    x-enum-varnames:
+    - Historian
+    - Moderator
+host: localhost:8084
+info:
+  contact:
+    email: creatoreli8@gmail.com
+    name: Мефодьев Илья
+    url: https://t.me/Thir5tyF0r1ife
+  description: Система расчёта дневного перехода армии
+  license:
+    name: AS IS (NO WARRANTY)
+  title: Travel Times API
+  version: "1.0"
+paths:
+  /armies:
+    get:
+      consumes:
+      - application/json
+      description: Получить список армий, включая фильтрацию (param "class") и поисковый
+        запрос (param "searchNameArmy")
+      parameters:
+      - description: фильтрация
+        in: query
+        name: class
+        type: string
+      - description: поиск армии
+        in: query
+        name: searchNameArmy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.Army'
+            type: array
+      summary: Получить список армий
+      tags:
+      - Requests
+  /army:
+    post:
+      consumes:
+      - application/json
+      description: Создать одну армию
+      parameters:
+      - description: данные армии
+        in: body
+        name: army
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Army'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ArmyResSw'
+      summary: Создать армию
+      tags:
+      - Requests
+  /army/{id}:
+    delete:
+      description: Удалить одну армию, зная её идентификатор и изменяя статус (запрещено
+        удалять запись из БД)
+      parameters:
+      - description: ID удаляемой армии
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.message'
+      summary: Удалить армию
+      tags:
+      - Requests
+    get:
+      description: Получить одну армию по её id
+      parameters:
+      - description: id армии
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Army'
+      summary: Получить одну армию
+      tags:
+      - Requests
+    put:
+      consumes:
+      - application/json
+      description: Изменить одну армию, зная её идентификатор и изменяя существующие
+        поля
+      parameters:
+      - description: ID изменяемой армии
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: данные армии
+        in: body
+        name: army
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Army'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ArmyResSw'
+      summary: Изменить армию
+      tags:
+      - Requests
+  /army/{id}/upload_image:
+    post:
+      description: Добавить или Обновить изображение армии зная её идентификатор
+      parameters:
+      - description: ID армии к которой добавляется изображение
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: Изображение армии
+        in: formData
+        name: image_army
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+      summary: Добавить или Обновить изображение армии
+      tags:
+      - Requests
+  /army/add_to_travel:
+    post:
+      description: Добавить армию в расчёт, зная её идентификатор и при необходимости
+        создавая новый черновик
+      parameters:
+      - description: ID добавляемой армии
+        in: formData
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ResDraftSw'
+      security:
+      - BearerAuth: []
+      summary: Добавить армию в расчёт
+      tags:
+      - Requests
+  /historian:
+    get:
+      description: Получить информацию об историке (для его личного кабинета), уже
+        авторизованном
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.HisSw'
+      security:
+      - BearerAuth: []
+      summary: Получить информацию об историке
+      tags:
+      - Requests
+    put:
+      description: Обновить информацию об историке по его логину
+      parameters:
+      - description: логин историка
+        in: formData
+        name: LoginHistorian
+        required: true
+        type: string
+      - description: пароль историка
+        in: formData
+        name: PasswordHistorian
+        required: true
+        type: string
+      - description: Историк - модератор?
+        in: formData
+        name: HisIsModerator
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.HisSw'
+      security:
+      - BearerAuth: []
+      summary: Обновить информацию об историке
+      tags:
+      - Requests
+  /historian/auth:
+    post:
+      description: Аутентификация историка по его логину и паролю
+      parameters:
+      - description: логин историка
+        in: formData
+        name: loginHistorian
+        required: true
+        type: string
+      - description: пароль историка
+        in: formData
+        name: passwordHistorian
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MesHisLPMSw'
+      summary: Аутентификация историка
+      tags:
+      - Requests
+  /historian/exit:
+    post:
+      description: Деавторизация историка (завершение текущей сессии)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.message'
+      security:
+      - BearerAuth: []
+      summary: Деавторизация историка
+      tags:
+      - Requests
+  /historian/reg:
+    post:
+      description: Регистрация историка по его логину и паролю
+      parameters:
+      - description: логин историка
+        in: formData
+        name: LoginHistorian
+        required: true
+        type: string
+      - description: пароль историка
+        in: formData
+        name: PasswordHistorian
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MesHisLPMSw'
+      summary: Регистрация историка
+      tags:
+      - Requests
+  /travel_time:
+    get:
+      description: Получить id черновика и количество армий в нём (id вычисляется
+        для текущего пользователя)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.idDraftCountArmies'
+      security:
+      - BearerAuth: []
+      summary: Получить id черновика и количество армий в нём
+      tags:
+      - Requests
+  /travel_time/{ttid}:
+    delete:
+      description: Удалить расчёт по его id
+      parameters:
+      - description: id расчёта
+        in: path
+        name: ttid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.message'
+      security:
+      - BearerAuth: []
+      summary: Удалить расчёт
+      tags:
+      - Requests
+    get:
+      description: Получить расчёт по его id
+      parameters:
+      - description: id расчёта
+        in: path
+        name: ttid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ttToresultsStrPlusArmies'
+      security:
+      - BearerAuth: []
+      summary: Получить расчёт
+      tags:
+      - Requests
+    put:
+      description: Обновить расчёт по его id
+      parameters:
+      - description: id расчёта
+        in: path
+        name: ttid
+        required: true
+        type: integer
+      - description: Обновленные данные расчёта
+        in: body
+        name: TimeToAdd
+        required: true
+        schema:
+          $ref: '#/definitions/ds.TravelTime'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.TravelTime'
+      security:
+      - BearerAuth: []
+      summary: Обновить расчёт
+      tags:
+      - Requests
+  /travel_time/{ttid}/form:
+    put:
+      description: Сформировать расчёт по его id, происходит проверка на обязательные
+        поля
+      parameters:
+      - description: id расчёта
+        in: path
+        name: ttid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.TravelTime'
+      security:
+      - BearerAuth: []
+      summary: Сформировать расчёт
+      tags:
+      - Requests
+  /travel_time/{ttid}/moderate:
+    put:
+      description: Завершить/отклонить расчёт по его id, происходит расчёт и оценка
+        времени, требуемого на переход заданной дистанции
+      parameters:
+      - description: id расчёта
+        in: path
+        name: ttid
+        required: true
+        type: integer
+      - description: Выбор действия (завершить или отклонить)
+        enum:
+        - завершить
+        - отклонить
+        in: formData
+        name: statusTT
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TTplusMessage'
+      summary: Завершить/отклонить расчёт
+      tags:
+      - Requests
+  /travel_time/delete_army:
+    delete:
+      description: Удалить армию из расчёта по id расчёта и id армии
+      parameters:
+      - description: id расчёта
+        in: query
+        name: ttid
+        required: true
+        type: integer
+      - description: id армии
+        in: query
+        name: ArmyID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.message'
+      security:
+      - BearerAuth: []
+      summary: Удалить армию из расчёта
+      tags:
+      - Requests
+  /travel_time/update_army:
+    put:
+      description: Обновить летописные сведения (поле M:M) - измерение пройденного
+        за день расстояния по летописи
+      parameters:
+      - description: id расчёта
+        in: query
+        name: ttid
+        required: true
+        type: integer
+      - description: id армии
+        in: query
+        name: ArmyID
+        required: true
+        type: integer
+      - description: пройденное расстояние за день по летописи
+        in: query
+        name: newKmPerDayChronical
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.message'
+      security:
+      - BearerAuth: []
+      summary: Обновить летописные сведения
+      tags:
+      - Requests
+  /travel_times:
+    get:
+      consumes:
+      - application/json
+      description: Получить список Расчётов, включая фильтрацию по диапазону дат и
+        статусу
+      parameters:
+      - description: фильтр даты начала
+        format: date
+        in: query
+        name: dateFromTT
+        type: string
+      - description: фильтр даты окончания
+        format: date
+        in: query
+        name: dateToTT
+        type: string
+      - description: статус расчёта
+        in: query
+        name: statusTT
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.TravelTime'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Получить список Расчётов
+      tags:
+      - Requests
+securityDefinitions:
+  BearerAuth:
+    description: 'Введите: Bearer {ваш_JWT_токен}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,4 @@
+jwt:
+  token: "your-super-secret-key-here"  # секретный ключ
+  expires_in: 86400                      # время жизни токена
+  signing_method: "HS256"              # алгоритм подписи

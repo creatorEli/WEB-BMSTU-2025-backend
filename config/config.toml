@@ -1,0 +1,13 @@
+ServiceHost = "localhost"
+ServicePort = 8084
+
+[jwt]
+token = "your-super-secret-key-change-in-production"
+expires_in = "24h" # длительность в формате, который понимает time.ParseDuration
+signing_method = "HS256"
+
+[Redis]
+
+# Таймауты в миллисекундах
+DialTimeout = "10s"
+ReadTimeout = "10s"

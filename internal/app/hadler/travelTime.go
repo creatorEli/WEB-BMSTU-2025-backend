@@ -99,11 +99,13 @@ func (h *Handler) getOrCreateDraftTime(creatorID int) (ds.TravelTime, error) {
 	if err == nil {
 		return traveltime, nil
 	}
-	var modID uint
-	modID = 2 // ну пусть пока так...
-	logrus.Info("нету черновика тут!")
+	if err != nil && err.Error() != "404" {
+		return ds.TravelTime{}, err
+	}
+	var modID uint = 2 // ну пусть пока так... нужно из-за особенностей релизации связных таблиц
+	//logrus.Info("нету черновика тут!")
 	if (traveltime == ds.TravelTime{}) {
-		logrus.Info("создаем черновик тут!")
+		//logrus.Info("создаем черновик тут!")
 
 		// создаем новую заявку со статусом черновик, если нету таковой в БД
 		traveltime = ds.TravelTime{
@@ -112,8 +114,9 @@ func (h *Handler) getOrCreateDraftTime(creatorID int) (ds.TravelTime, error) {
 			CreatorID_TT:   uint(creatorID),
 			ModeratorID_TT: &modID,
 		}
-
+		logrus.Info(1234567)
 		traveltimerr, err := h.Repository.AddTTInDB(&traveltime)
+		logrus.Info(7654321)
 		traveltime = traveltimerr
 
 		if err != nil {
@@ -217,7 +220,7 @@ func (h *Handler) GetTravelTime(c *gin.Context) {
 	// })
 }
 
-type idDraftCountArmies struct {
+type IdDraftCountArmies struct {
 	CountArmies int
 	TTid        int
 }
@@ -228,7 +231,7 @@ type idDraftCountArmies struct {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Success      200  {object} idDraftCountArmies
+// @Success      200  {object} IdDraftCountArmies
 // @Router       /travel_time [get]
 // @Security BearerAuth
 func (h *Handler) GetTravelTimeDraft(c *gin.Context) {
@@ -244,8 +247,15 @@ func (h *Handler) GetTravelTimeDraft(c *gin.Context) {
 
 	// считаю, что вход я уже сделал, и по логину вычислили ID пользователя
 	//creatorID := 1
+	if ds.CurrentHistorian.HisLogin == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"TTid":        -1,
+			"CountArmies": 0,
+		})
+		return
+	}
 
-	historian, err := h.Repository.GetHistorianByLogin("Andy")
+	historian, err := h.Repository.GetHistorianByLogin(ds.CurrentHistorian.HisLogin)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Не удалось найти пользователя, которому принадлежит заявка",
@@ -256,7 +266,8 @@ func (h *Handler) GetTravelTimeDraft(c *gin.Context) {
 	if err != nil {
 		if err.Error() == "404" {
 			c.JSON(404, gin.H{
-				"message": "Черновик отсутствует!",
+				"TTid":        -1,
+				"CountArmies": 0,
 			})
 			return
 		}
@@ -303,6 +314,7 @@ func (h *Handler) GetTravelTimes(c *gin.Context) {
 	var arrStatuses []string
 
 	if statusTT == "" {
+		logrus.Info("statustt")
 		arrStatuses = append(arrStatuses, []string{"сформирован", "завершен", "отклонен"}...)
 	} else {
 		arrStatuses = append(arrStatuses, statusTT)
@@ -395,6 +407,11 @@ func (h *Handler) GetTravelTimes(c *gin.Context) {
 	})
 }
 
+type UpdaterTT struct {
+	ChosenBiomTT string
+	DistanceTT   int
+}
+
 // UpdateTravelTime godoc
 // @Summary      Обновить расчёт
 // @Description  Обновить расчёт по его id
@@ -402,7 +419,7 @@ func (h *Handler) GetTravelTimes(c *gin.Context) {
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
 // @Param		 ttid path int true "id расчёта"
-// @Param		 TimeToAdd body ds.TravelTime true "Обновленные данные расчёта"
+// @Param		 TimeToAdd body UpdaterTT true "Обновленные данные расчёта"
 // @Success      200  {object} ds.TravelTime
 // @Router       /travel_time/{ttid} [put]
 // @Security BearerAuth
@@ -413,7 +430,7 @@ func (h *Handler) UpdateTravelTime(c *gin.Context) {
 		logrus.Error(err)
 	}
 
-	var TimeToAdd ds.TravelTime
+	var TimeToAdd UpdaterTT
 	err = c.ShouldBindJSON(&TimeToAdd) // считаем, что принимаем данные в формате JSON
 
 	if err != nil {
@@ -427,11 +444,16 @@ func (h *Handler) UpdateTravelTime(c *gin.Context) {
 	TimeTravelToChange, err := h.Repository.GetTravelTime(idTT)
 	if err != nil {
 		logrus.Error(err)
+		c.JSON(404, gin.H{
+			"Error":    err.Error(),
+			"messaage": "Расчёт для обновления не найден!",
+		})
+		return
 	}
 
-	if TimeToAdd.StatusTT != "" {
-		TimeTravelToChange.StatusTT = TimeToAdd.StatusTT
-	}
+	// if TimeToAdd.StatusTT != "" {
+	// 	TimeTravelToChange.StatusTT = TimeToAdd.StatusTT
+	// }
 	TimeTravelToChange.DateUpdateTT = time.Now()
 	TimeTravelToChange.ChosenBiomTT = TimeToAdd.ChosenBiomTT
 	TimeTravelToChange.DistanceTT = TimeToAdd.DistanceTT
@@ -443,7 +465,7 @@ func (h *Handler) UpdateTravelTime(c *gin.Context) {
 		logrus.Error("не удалось обновить армию!")
 		c.JSON(400, gin.H{
 			"Error":    err.Error(),
-			"messaage": "не удалось обновить армию!",
+			"messaage": "не удалось обновить расчёт!",
 		})
 		return
 	}
@@ -457,7 +479,6 @@ func (h *Handler) UpdateTravelTime(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, resultTTformated)
 }
 
@@ -486,6 +507,11 @@ func (h *Handler) ToFormTravelTime(c *gin.Context) {
 	//logrus.Info(idTT)
 	err = h.Repository.CheckFieldsTravelTime(idTT)
 	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(404, gin.H{
+				"messaage": "Указанный расчёт не найден!",
+			})
+		}
 		c.JSON(400, gin.H{
 			"Error":    err.Error(),
 			"messaage": "Некорректно заполнены поля!",
@@ -522,17 +548,18 @@ type TTplusMessage struct {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 ttid path int true "id расчёта"
+// @Param		 ttid formData int true "id расчёта"
 // @Param		 statusTT formData string true "Выбор действия (завершить или отклонить)" Enums(завершить,отклонить)
 // @Success      200  {object} TTplusMessage
 // @Router       /travel_time/{ttid}/moderate [put]
 func (h *Handler) ToModerateTravelTime(c *gin.Context) {
+	logrus.Info("moderaterr")
 	//PUT завершить/отклонить модератором. При завершить/отклонении заявки
 	// проставляется модератор и дата завершения. Одно из доп. полей заявки
 	// или м-м рассчитывается (реализовать формулу представленную в лаб-2)
 	// при завершении заявки (вычисление стоимости заказа, даты доставки
 	// в течении месяца, вычисления в м-м).
-	idStr := c.Param("ttid")
+	idStr := c.PostForm("ttid")
 	idTT, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -565,7 +592,6 @@ func (h *Handler) ToModerateTravelTime(c *gin.Context) {
 	}
 
 	// расчёт полей
-	logrus.Info("asdfaliohgpao")
 	time_travel, err := h.Repository.GetTravelTime(idTT)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

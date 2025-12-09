@@ -16,7 +16,7 @@ import (
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 ttid query int true "id расчёта"
+// @Param		 TTid query int true "id расчёта"
 // @Param		 ArmyID query int true "id армии"
 // @Success      200  {object} message
 // @Router       /travel_time/delete_army [delete]
@@ -53,7 +53,7 @@ func (h *Handler) DeleteConn(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Армя удалена из расчёта",
+		"message": "Армия удалена из расчёта",
 	})
 }
 
@@ -63,7 +63,7 @@ func (h *Handler) DeleteConn(c *gin.Context) {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 ttid query int true "id расчёта"
+// @Param		 TTid query int true "id расчёта"
 // @Param		 ArmyID query int true "id армии"
 // @Param		 newKmPerDayChronical query int true "пройденное расстояние за день по летописи"
 // @Success      200  {object} message

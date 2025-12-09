@@ -23,11 +23,6 @@ type HisLPSw struct {
 	PasswordHistorian string
 }
 
-type MesHisLPMSw struct {
-	Message   string
-	Historian ds.Historian
-}
-
 type registerReq struct {
 	Name string `json:"name"` // лучше назвать то же самое что login
 	Pass string `json:"pass"`
@@ -43,9 +38,9 @@ type registerResp struct {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 LoginHistorian formData string true "логин историка"
-// @Param		 PasswordHistorian formData string true "пароль историка"
-// @Success      200  {object} MesHisLPMSw
+// @Param		 loginHistorian formData string true "логин историка"
+// @Param		 passwordHistorian formData string true "пароль историка"
+// @Success      202  {object} MesHisLPMSw
 // @Router       /historian/reg [post]
 func (h *Handler) RegisterHistorian(c *gin.Context) {
 	loginHistorian := c.PostForm("loginHistorian")
@@ -131,9 +126,9 @@ func (h *Handler) GetHistorianInfo(c *gin.Context) {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 LoginHistorian formData string true "логин историка"
-// @Param		 PasswordHistorian formData string true "пароль историка"
-// @Param		 HisIsModerator formData bool true "Историк - модератор?"
+// @Param		 loginHistorian formData string true "логин историка"
+// @Param		 passwordHistorian formData string true "пароль историка"
+// Param		 HisIsModerator formData bool true "Историк - модератор?"
 // @Success      200  {object} HisSw
 // @Router       /historian [put]
 // @Security BearerAuth
@@ -155,14 +150,15 @@ func (h *Handler) UpdateHistorianInfo(c *gin.Context) {
 	// 	return
 	// }
 
-	if loginHistorian == "" {
+	if loginHistorian == "" && passwordHistorian == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Нужно указать логин пользователя, чьи данные надо обновить!",
+			"message": "Нужно указать данные для обновления!",
 		})
 		return
 	}
 
-	historianToUpdate, err := h.Repository.GetHistorianByLogin(loginHistorian)
+	//historianToUpdate, err := h.Repository.GetHistorianByLogin(loginHistorian)
+	historianToUpdate, err := h.Repository.GetHistorianByID(int(ds.CurrentHistorian.HistorianID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
@@ -172,8 +168,12 @@ func (h *Handler) UpdateHistorianInfo(c *gin.Context) {
 	}
 
 	//historianToUpdate.HisIsModerator = HisIsModerator
-	historianToUpdate.HisPassword = generateHashString(passwordHistorian)
-	historianToUpdate.HisLogin = loginHistorian
+	if loginHistorian != "" {
+		historianToUpdate.HisPassword = generateHashString(passwordHistorian)
+	}
+	if passwordHistorian != "" {
+		historianToUpdate.HisLogin = loginHistorian
+	}
 
 	res, err := h.Repository.UpdateHistorian(historianToUpdate)
 
@@ -182,6 +182,7 @@ func (h *Handler) UpdateHistorianInfo(c *gin.Context) {
 			"error":   err,
 			"message": "не удалось обновить данные пользователя!",
 		})
+		return
 	}
 	c.JSON(http.StatusAccepted, gin.H{
 		"message":   "Данные успешно обновлены!",
@@ -199,6 +200,11 @@ type loginResp struct {
 	ExpiresIn   int    `json:"expires_in"`
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
+}
+
+type MesHisLPMSw struct {
+	Message   loginResp
+	Historian ds.Historian
 }
 
 // AuthHistorian godoc
@@ -273,10 +279,13 @@ func (h *Handler) AuthHistorian(c *gin.Context) {
 
 	logrus.Info("Successful auth for: ", loginHistorian)
 
-	c.JSON(http.StatusOK, loginResp{
-		ExpiresIn:   expiresInSec,
-		AccessToken: strToken,
-		TokenType:   "Bearer",
+	c.JSON(http.StatusOK, MesHisLPMSw{
+		Message: loginResp{
+			ExpiresIn:   expiresInSec,
+			AccessToken: strToken,
+			TokenType:   "Bearer",
+		},
+		Historian: historian,
 	})
 
 	logrus.Info()

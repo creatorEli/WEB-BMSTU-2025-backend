@@ -55,13 +55,14 @@ func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутиза�
 	router.GET("/api/army/:id", h.GetArmy)                 // одна запись
 	router.POST("/api/historian/reg", h.RegisterHistorian) //регистрация
 	router.POST("/api/historian/auth", h.AuthHistorian)    // аутентификация
+	//router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).GET("/api/travel_time", h.GetTravelTimeDraft) // получить id черновика и кол-во услуг в нем
+	router.GET("/api/travel_time", h.GetTravelTimeDraft) // получить id черновика и кол-во услуг в нем
 
 	// действия, доступные авторизованным пользователям:
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).POST("/api/army/add_to_travel", h.addArmyToTT) // добавление армии в расчёт черновик
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).GET("/api/historian", h.GetHistorianInfo)      // GET полей пользователя после аутентификации (для личного кабинета)
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).PUT("/api/historian", h.UpdateHistorianInfo)   // PUT пользователя (личный кабинет)
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).POST("/api/historian/exit", h.DeauthHistorian) // деавторизация
-	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).GET("/api/travel_time", h.GetTravelTimeDraft)  // получить id черновика и кол-во услуг в нем
 
 	// M:M
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).DELETE("/api/travel_time/delete_army", h.DeleteConn)   // удаление из заявки (без PK м-м)
@@ -78,7 +79,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутиза�
 	router.Use(h.WithAuthCheck(role.Moderator)).DELETE("/api/army/:id", h.DeleteArmy)                          // "удаление" Армии - смена статуса услуги на "удален"
 	router.Use(h.WithAuthCheck(role.Moderator)).POST("/api/army/:id/upload_image", h.uploadArmyImage)          // добавление изображения к армии
 	router.Use(h.WithAuthCheck(role.Moderator)).PUT("/api/travel_time/:ttid/moderate", h.ToModerateTravelTime) // завершить/отклонить модератором
-
 }
 
 // func (h *Handler) RegisterStatic(router *gin.Engine) {

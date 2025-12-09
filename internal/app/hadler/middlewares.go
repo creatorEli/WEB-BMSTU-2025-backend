@@ -20,9 +20,13 @@ func (h *Handler) WithAuthCheck(assignRoles ...role.Role) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		logrus.Info("got in WithAuthCheck")
 		jwtStr := c.GetHeader("Authorization")
+		logrus.Info(jwtStr)
 		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
-			c.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
-			return                                  // завершаем обработку
+			//c.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "Нет доступа, неверный токен!",
+			}) // отдаем что нет доступа
+			return // завершаем обработку
 		}
 
 		// отрезаем префикс

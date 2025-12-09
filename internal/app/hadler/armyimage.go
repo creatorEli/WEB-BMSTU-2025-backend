@@ -78,13 +78,13 @@ type ImageUploadRequest struct {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 id formData int true "ID армии к которой добавляется изображение"
+// @Param		 ArmyID formData int true "ID армии к которой добавляется изображение"
 // @Param		 image_army formData file true "Изображение армии"
 // @Success      200  {object} UploadResponse
 // @Router       /army/{id}/upload_image [post]
 func (h *Handler) uploadArmyImage(c *gin.Context) {
 	logrus.Info("we are here UAI 1!")
-
+	// param		 id path int true "id армии"
 	var req ImageUploadRequest
 
 	// Валидация формы
@@ -122,7 +122,7 @@ func (h *Handler) uploadArmyImage(c *gin.Context) {
 		return
 	}
 
-	idStr := c.Param("id")
+	idStr := c.PostForm("ArmyID")
 	id, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
 	if err != nil {
 		logrus.Error(err)

@@ -53,10 +53,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ds.Army"
-                            }
+                            "$ref": "#/definitions/handler.ResArmies"
                         }
                     }
                 }
@@ -115,7 +112,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID добавляемой армии",
-                        "name": "id",
+                        "name": "ArmyID",
                         "in": "formData",
                         "required": true
                     }
@@ -239,7 +236,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID армии к которой добавляется изображение",
-                        "name": "id",
+                        "name": "ArmyID",
                         "in": "formData",
                         "required": true
                     },
@@ -303,21 +300,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "логин историка",
-                        "name": "LoginHistorian",
+                        "name": "loginHistorian",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "пароль историка",
-                        "name": "PasswordHistorian",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Историк - модератор?",
-                        "name": "HisIsModerator",
+                        "name": "passwordHistorian",
                         "in": "formData",
                         "required": true
                     }
@@ -407,21 +397,21 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "логин историка",
-                        "name": "LoginHistorian",
+                        "name": "loginHistorian",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "пароль историка",
-                        "name": "PasswordHistorian",
+                        "name": "passwordHistorian",
                         "in": "formData",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "202": {
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/handler.MesHisLPMSw"
                         }
@@ -448,7 +438,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.idDraftCountArmies"
+                            "$ref": "#/definitions/handler.IdDraftCountArmies"
                         }
                     }
                 }
@@ -473,7 +463,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "id расчёта",
-                        "name": "ttid",
+                        "name": "TTid",
                         "in": "query",
                         "required": true
                     },
@@ -514,7 +504,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "id расчёта",
-                        "name": "ttid",
+                        "name": "TTid",
                         "in": "query",
                         "required": true
                     },
@@ -604,7 +594,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ds.TravelTime"
+                            "$ref": "#/definitions/handler.UpdaterTT"
                         }
                     }
                 ],
@@ -699,7 +689,7 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "id расчёта",
                         "name": "ttid",
-                        "in": "path",
+                        "in": "formData",
                         "required": true
                     },
                     {
@@ -931,6 +921,17 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.IdDraftCountArmies": {
+            "type": "object",
+            "properties": {
+                "countArmies": {
+                    "type": "integer"
+                },
+                "ttid": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.MesHisLPMSw": {
             "type": "object",
             "properties": {
@@ -938,7 +939,18 @@ const docTemplate = `{
                     "$ref": "#/definitions/ds.Historian"
                 },
                 "message": {
-                    "type": "string"
+                    "$ref": "#/definitions/handler.loginResp"
+                }
+            }
+        },
+        "handler.ResArmies": {
+            "type": "object",
+            "properties": {
+                "armies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ds.Army"
+                    }
                 }
             }
         },
@@ -964,6 +976,17 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.UpdaterTT": {
+            "type": "object",
+            "properties": {
+                "chosenBiomTT": {
+                    "type": "string"
+                },
+                "distanceTT": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.UploadResponse": {
             "type": "object",
             "properties": {
@@ -984,14 +1007,17 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.idDraftCountArmies": {
+        "handler.loginResp": {
             "type": "object",
             "properties": {
-                "countArmies": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
                     "type": "integer"
                 },
-                "ttid": {
-                    "type": "integer"
+                "token_type": {
+                    "type": "string"
                 }
             }
         },

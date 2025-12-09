@@ -103,12 +103,26 @@ definitions:
       historian:
         $ref: '#/definitions/ds.Historian'
     type: object
+  handler.IdDraftCountArmies:
+    properties:
+      countArmies:
+        type: integer
+      ttid:
+        type: integer
+    type: object
   handler.MesHisLPMSw:
     properties:
       historian:
         $ref: '#/definitions/ds.Historian'
       message:
-        type: string
+        $ref: '#/definitions/handler.loginResp'
+    type: object
+  handler.ResArmies:
+    properties:
+      armies:
+        items:
+          $ref: '#/definitions/ds.Army'
+        type: array
     type: object
   handler.ResDraftSw:
     properties:
@@ -124,6 +138,13 @@ definitions:
       travel_time:
         $ref: '#/definitions/ds.TravelTime'
     type: object
+  handler.UpdaterTT:
+    properties:
+      chosenBiomTT:
+        type: string
+      distanceTT:
+        type: integer
+    type: object
   handler.UploadResponse:
     properties:
       file_name:
@@ -137,12 +158,14 @@ definitions:
       success:
         type: boolean
     type: object
-  handler.idDraftCountArmies:
+  handler.loginResp:
     properties:
-      countArmies:
+      access_token:
+        type: string
+      expires_in:
         type: integer
-      ttid:
-        type: integer
+      token_type:
+        type: string
     type: object
   handler.message:
     properties:
@@ -233,9 +256,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ds.Army'
-            type: array
+            $ref: '#/definitions/handler.ResArmies'
       summary: Получить список армий
       tags:
       - Requests
@@ -332,7 +353,7 @@ paths:
       parameters:
       - description: ID армии к которой добавляется изображение
         in: formData
-        name: id
+        name: ArmyID
         required: true
         type: integer
       - description: Изображение армии
@@ -357,7 +378,7 @@ paths:
       parameters:
       - description: ID добавляемой армии
         in: formData
-        name: id
+        name: ArmyID
         required: true
         type: integer
       produces:
@@ -393,19 +414,14 @@ paths:
       parameters:
       - description: логин историка
         in: formData
-        name: LoginHistorian
+        name: loginHistorian
         required: true
         type: string
       - description: пароль историка
         in: formData
-        name: PasswordHistorian
+        name: passwordHistorian
         required: true
         type: string
-      - description: Историк - модератор?
-        in: formData
-        name: HisIsModerator
-        required: true
-        type: boolean
       produces:
       - application/json
       responses:
@@ -463,19 +479,19 @@ paths:
       parameters:
       - description: логин историка
         in: formData
-        name: LoginHistorian
+        name: loginHistorian
         required: true
         type: string
       - description: пароль историка
         in: formData
-        name: PasswordHistorian
+        name: passwordHistorian
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "202":
+          description: Accepted
           schema:
             $ref: '#/definitions/handler.MesHisLPMSw'
       summary: Регистрация историка
@@ -491,7 +507,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.idDraftCountArmies'
+            $ref: '#/definitions/handler.IdDraftCountArmies'
       security:
       - BearerAuth: []
       summary: Получить id черновика и количество армий в нём
@@ -551,7 +567,7 @@ paths:
         name: TimeToAdd
         required: true
         schema:
-          $ref: '#/definitions/ds.TravelTime'
+          $ref: '#/definitions/handler.UpdaterTT'
       produces:
       - application/json
       responses:
@@ -592,7 +608,7 @@ paths:
         времени, требуемого на переход заданной дистанции
       parameters:
       - description: id расчёта
-        in: path
+        in: formData
         name: ttid
         required: true
         type: integer
@@ -620,7 +636,7 @@ paths:
       parameters:
       - description: id расчёта
         in: query
-        name: ttid
+        name: TTid
         required: true
         type: integer
       - description: id армии
@@ -647,7 +663,7 @@ paths:
       parameters:
       - description: id расчёта
         in: query
-        name: ttid
+        name: TTid
         required: true
         type: integer
       - description: id армии

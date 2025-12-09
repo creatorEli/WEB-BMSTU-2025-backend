@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"net/http"
 	"strconv"
 	"time_of_armies/internal/app/ds"
@@ -11,6 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
+
+type ResArmies struct {
+	Armies []ds.Army
+}
 
 //var creatorID = 1 // хардкод пока нету функцонала юзера
 // переделать на singleton юзера!
@@ -24,21 +28,13 @@ import (
 // Param [name] [type] [dataType] [required] [description]
 // @Param		 class query string false "фильтрация"
 // @Param 		 searchNameArmy query string false "поиск армии"
-// @Success      200  {array} ds.Army
+// @Success      200 {object} ResArmies
 // @Router       /armies [get]
 func (h *Handler) GetArmies(c *gin.Context) {
 
 	logrus.Info("GetArmies!")
 
 	// если есть расчёт черновик у юзера, то добавляем ссылку, иначе впихиваем якорь и нуль число
-
-	// var href string = "/armies"
-	// var armiesInDraft int64 = 0
-	// ttDraft, errorr := h.Repository.GetTTDraft(creatorID)
-	// if errorr == nil {
-	// 	armiesInDraft = h.Repository.CountArmiesInTime(ttDraft.TtID)
-	// 	href = "/travel_time/" + strconv.Itoa(ttDraft.TtID)
-	// }
 
 	var armies []ds.Army
 
@@ -51,6 +47,7 @@ func (h *Handler) GetArmies(c *gin.Context) {
 		if err != nil {
 			logrus.Error(err)
 		}
+		logrus.Info(armies)
 		// c.HTML(http.StatusOK, "armies.html", gin.H{
 		// 	"armies":             armies,
 		// 	"armySearchQuery":    searchArmyQuery,
@@ -58,12 +55,13 @@ func (h *Handler) GetArmies(c *gin.Context) {
 		// 	"hrefToTT":           href,
 		// })
 
-		armiesJSON, err := json.Marshal(armies)
-		if err != nil {
-			logrus.Error("не удалось перевести массив структур в джейсон форман")
-		}
+		// armiesJSON, err := json.Marshal(armies)
+		// if err != nil {
+		// 	logrus.Error("не удалось перевести массив структур в джейсон форман")
+		// }
+		//
 		c.JSON(http.StatusOK, gin.H{
-			"armies": armiesJSON,
+			"armies": armies,
 			//"armySearchQuery": searchArmyQuery,
 		})
 		return
@@ -74,12 +72,14 @@ func (h *Handler) GetArmies(c *gin.Context) {
 		if err != nil {
 			logrus.Error(err)
 		}
-		armiesJSON, err := json.Marshal(armies)
-		if err != nil {
-			logrus.Error("не удалось перевести массив структур в джейсон форман")
-		}
+		logrus.Info(" I am here! ")
+		// armiesJSON, err := json.Marshal(armies)
+		// if err != nil {
+		// 	logrus.Error("не удалось перевести массив структур в джейсон форман")
+		// }
+		logrus.Info(armies)
 		c.JSON(http.StatusOK, gin.H{
-			"armies": armiesJSON,
+			"armies": armies,
 			//"armySearchQuery": searchArmyQuery,
 		})
 		// c.HTML(http.StatusOK, "armies.html", gin.H{
@@ -281,7 +281,7 @@ type ResDraftSw struct {
 // @Tags         Requests
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
-// @Param		 id formData int true "ID добавляемой армии"
+// @Param		 ArmyID formData int true "ID добавляемой армии"
 // @Success      200  {object} ResDraftSw
 // @Router       /army/add_to_travel [post]
 // @Security BearerAuth
@@ -298,11 +298,14 @@ func (h *Handler) addArmyToTT(c *gin.Context) {
 		})
 		return
 	}
-
-	//logrus.Info("adding post army 1")
-
-	// ПОКА ХАРДКОД 1, Т.К. НЕТУ ФУНКЦИОНАЛА АУТЕНТИФИКАЦИИ !!!
-
+	if int(ds.CurrentHistorian.HistorianID) == 0 {
+		c.JSON(401, gin.H{
+			"error":   err,
+			"message": "Вы не авторизованы!",
+		})
+		return
+	}
+	logrus.Info("HisID current: ", int(ds.CurrentHistorian.HistorianID))
 	ttDraft, errr := h.getOrCreateDraftTime(int(ds.CurrentHistorian.HistorianID))
 
 	//logrus.Info("adding post army 2")
@@ -310,7 +313,7 @@ func (h *Handler) addArmyToTT(c *gin.Context) {
 	if errr != nil {
 		// logrus.Error(err)
 		// logrus.Info(ttDraft.TtID)
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"error":   err,
 			"message": "Не удалось найти или создать черновик!",
 		})
@@ -343,6 +346,7 @@ func (h *Handler) addArmyToTT(c *gin.Context) {
 	}
 
 	resDraft, err := h.Repository.GetTravelTime(idDraft)
+
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error":   err,

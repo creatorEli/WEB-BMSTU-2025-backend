@@ -1,0 +1,429 @@
+/*common styles: */
+@font-face {
+    font-family: Karla;
+    src: url(../fonts/Karla/Karla-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url(../fonts/Roboto/Roboto-VariableFont_wdth\,wght.ttf);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    background-color: #fff;
+    max-width: 1200px;
+    width: 78vw;
+    margin: 0 auto;
+}
+
+.animalsRow {
+    background: url(/static/images/mesopotamia_shadow.jpg) repeat-x;
+    /*static и здесь применим*/
+    background-size: contain;
+    width: 100vw;
+    height: 72px;
+}
+
+.header {
+    width: 100%;
+    height: 127px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.headerBTNs {
+    display: flex;
+}
+
+.homeBTN {
+    margin-left: 20px;
+    height: 36px;
+    width: 126px;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    justify-content: space-around;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.timesBTN {
+    height: 36px;
+    width: 126px;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    justify-content: space-around;
+    font-size: 16px;
+    text-decoration: none;
+    position: fixed;
+    top: calc(100% - 36px - 20px);
+    left: 20px
+}
+
+.homeBTNcount {
+    text-decoration: underline;
+}
+
+.logo {
+    width: 350px;
+    height: 128px;
+}
+
+.redBTN {
+    font-family: "Karla", "Roboto";
+    color: white;
+    background-color: #B52600;
+    border: none;
+    border-radius: 5px;
+    transition-duration: .3s;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.redBTN:hover {
+    background-color: black;
+}
+
+.wrapper>h1 {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: 100;
+    font-size: 60px;
+    margin: 0px auto 16px;
+    width: 100%;
+    display: block;
+    line-height: 97px;
+    position: relative;
+    top: 16px
+}
+
+/*Cards page style*/
+.searchArmies {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+}
+
+.searchArmies>form {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+}
+
+.searchBTN {
+    font-size: 24px;
+    width: 200px;
+    height: 100%;
+}
+
+.searchNameArmy {
+    width: 986px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #dadada;
+    font-size: 20px;
+    font-family: "Karla", "Roboto";
+    font-weight: 400;
+    height: 100%;
+}
+
+.filters {
+    height: 100px;
+    width: 100%;
+    border-top: 1px solid #e3e3e3;
+    border-bottom: 1px solid #e3e3e3;
+    margin: 16px auto;
+}
+
+.filters>h2 {
+    font-size: 18px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: 100;
+}
+
+.filtersRow {
+    width: 100%;
+    height: 28px;
+    display: flex;
+    align-items: center;
+}
+
+.filterBTN {
+    font-family: "Karla", Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    padding: 6px 15px;
+    background-color: #f3f3f3;
+    color: #B52600;
+    border-radius: 5px;
+    margin-right: 13px;
+    cursor: pointer;
+    transition-duration: .3s;
+    border: none
+}
+
+.filterBTN:hover {
+    color: white;
+    background-color: #B52600;
+}
+
+.chosenFilterBTN {
+    color: white;
+    background-color: #B52600;
+}
+
+.armies {
+    width: 100%;
+    min-height: 600px;
+    display: grid;
+    grid-template-columns: repeat(3, 370px);
+    grid-column-gap: 44px;
+}
+
+
+/*cards styles: */
+.oneArmyCard {
+    width: 370px;
+    height: 600px;
+}
+
+.oacImage {
+    width: 100%;
+    height: 225px;
+}
+
+.oacImage>* {
+    width: 100%;
+    height: 100%;
+}
+
+.oacDescription {
+    width: 340px;
+    height: 255px;
+    margin: 20px auto;
+    background-color: #fff;
+    font-family: "Karla", Arial, Helvetica, sans-serif;
+}
+
+.oacDescription>h3 {
+    margin: 0;
+    width: 100%;
+    line-height: 48px;
+    color: #B52600;
+    font-size: 28px;
+    margin-bottom: 13.5px;
+}
+
+.oacDescription>p {
+    font-size: 24px;
+    line-height: 36px;
+    color: #444444;
+    margin: 0;
+}
+
+.oacButtons {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    width: 303px;
+    height: 43px;
+    margin: 0 auto;
+}
+
+.oacBTN {
+    width: 138px;
+    height: 100%;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
+/*one card styles: */
+.oneArmySingle {
+    margin-top: calc(16px + 24px);
+    display: flex;
+}
+
+.oasImage {
+    width: 700px;
+    height: 400px;
+}
+
+.oasImage>* {
+    width: 100%;
+    height: 100%;
+}
+
+.oasInfo {
+    padding-top: 16px;
+    margin-left: 60px;
+    font-size: 24px;
+}
+
+.oasDescription {
+    width: 350px;
+    height: 300px;
+    font-family: "Karla", Arial, Helvetica, sans-serif;
+    line-height: 36px;
+    color: #444444;
+    letter-spacing: 0px;
+}
+
+.oasDescription>h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.oasDescription>p {
+    margin: 0;
+}
+
+.oasBTN {
+    width: 230px;
+    height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 24px;
+}
+
+/*request styles: */
+
+.armiesToCalc {
+    width: 100%;
+}
+
+.oneATC {
+    width: 100%;
+    height: 250px;
+    display: flex;
+    margin-bottom: 50px;
+}
+
+.atcImage {
+    width: 444px;
+    height: 100%;
+}
+
+.atcImage>* {
+    width: 100%;
+    height: 100%;
+}
+
+.atcDescription {
+    margin-left: 13px;
+    width: 340px;
+    height: 100%;
+    font-family: "Karla", Arial, Helvetica, sans-serif;
+    margin-right: 22px;
+}
+
+.atcDescription>h3 {
+    color: #B52600;
+    font-size: 32px;
+    margin: 0 0 16px;
+    line-height: 37px;
+}
+
+.atcDescription>p {
+    color: #444444;
+    font-size: 24px;
+    line-height: 36px;
+    margin: 0;
+}
+
+.atcButtons {
+    display: flex;
+    align-items: center;
+}
+
+.atcBTN {
+    width: 180px;
+    height: 45px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.atcBTN:first-of-type {
+    margin-right: 22px;
+}
+
+.calculateFields {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.calculateFields>form {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+}
+
+.calculateFields>form>select {
+    width: 720px;
+    height: 100%;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #dadada;
+    font-size: 20px;
+}
+
+.calculateBTN {
+    font-size: 24px;
+    width: 200px;
+    height: 100%;
+}
+
+.calculateFields>form>input {
+    width: 255px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #dadada;
+    font-size: 20px;
+    font-family: "Karla", "Roboto";
+    font-weight: 400;
+    height: 100%;
+}
+
+.resultReq {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 78px;
+    align-items: center;
+}
+
+.resultReq>h2 {
+    font-size: 48px;
+    line-height: 100%;
+    margin: 0;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: 100;
+}
+
+.calcDays {
+    font-size: 60px;
+    text-decoration: underline;
+}
+
+.deleteBTN {
+    font-size: 24px;
+    width: 200px;
+    height: 50px;
+}

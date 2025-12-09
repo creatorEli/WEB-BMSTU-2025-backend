@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчёт дневного перехода армии</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+
+<body>
+    <a href="/cur_travel_time/{{ .lastTTid }}" class="timesBTN redBTN">Расчёт <span class="homeBTNcount">{{
+            .countArmiesTimeBTN}}</span></a>
+    <div class="wrapper">
+        <div class="header">
+            <div class="logo">
+                <a href="/armies">
+                    <img src="/static/images/logo.png" alt="">
+                </a>
+            </div>
+
+            <div class="headerBTNs">
+
+                <a href="/armies" class="homeBTN redBTN">Домой</a>
+            </div>
+        </div>
+    </div>
+    <div class="animalsRow">
+    </div>
+    <div class="wrapper">
+        <h1>Виды войск и суточное расстояние</h1>
+
+        <div class="searchArmies">
+            <form action="#">
+                <input type="text" name="searchNameArmy" class="searchNameArmy" placeholder="Введите род войск"
+                    value="{{ .armySearchQuery }}">
+                <button class="redBTN searchBTN">Поиск</button>
+            </form>
+        </div>
+        <div class="filters">
+            <h2>ФИЛЬТРЫ:</h2>
+            <div class="filtersRow">
+                <form action="armies" method="get">
+                    <button type="submit" class="filterBTN" name="class" value="">Все</button>
+                    <button type="submit" class="filterBTN" name="class" value="step">Пешие</button>
+                    <button type="submit" class="filterBTN" name="class" value="horse">Кавалерия</button>
+                    <button type="submit" class="filterBTN" name="class" value="wheel">Колёсные</button>
+                </form>
+                <!--div class="filterBTN chosenFilterBTN" name="all">Все</div>
+                <div class="filterBTN" name="step">Пешие</div>
+                <div class="filterBTN" name="horse">Кавалерия</div>
+                <div class="filterBTN" name="wheel">Колёсные</div-->
+            </div>
+        </div>
+        <div class="armies">
+
+            {{ range .armies}}
+            <div class="oneArmyCard">
+                <div class="oacImage">
+                    <img src="{{ .ImageLink }}" alt="image">
+                </div>
+                <div class="oacDescription">
+                    <h3>{{.NameArmy}}</h3>
+                    <p>Равнина: {{.MinPlain}} - {{.MaxPlain}} км</p>
+                    <p>Горы/холмы: {{.MinMount}} - {{.MaxMount}} км</p>
+                    <p>Лес: {{.MinForest}} - {{.MaxForest}} км</p>
+                    <p>Река: {{.MinRiver}} - {{.MaxRiver}} км</p>
+                    <p>Пустыня: {{.MinDesert}} - {{.MaxDesert}} км</p>
+                </div>
+                <div class="oacButtons">
+                    <a href="/one_army/{{ .Id }}" class="redBTN oacBTN">Подробнее</a>
+                    <a href="#" class="redBTN oacBTN">Добавить</a>
+                </div>
+            </div>
+            {{ end }}
+
+        </div>
+    </div>
+</body>
+
+</html>

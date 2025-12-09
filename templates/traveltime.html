@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчёт дневного перехода армии</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <div class="logo">
+                <a href="/armies">
+                    <img src="/static/images/logo.png" alt="">
+                </a>
+            </div>
+
+            <div class="headerBTNs">
+                <!--a href="/cur_travel_time" class="homeBTN redBTN">Расчёт <span class="homeBTNcount">{{
+                        .countArmiesTimeBTN}}</span></a-->
+                <a href="/armies" class="homeBTN redBTN">Домой</a>
+            </div>
+
+        </div>
+    </div>
+    <div class="animalsRow">
+    </div>
+    <div class="wrapper">
+        <h1>Расчёт времени в пути (сутки)</h1>
+
+        <div class="armiesToCalc">
+
+            {{ range .reqArmy}}
+            <div class="oneATC">
+                <div class="atcImage">
+                    <img src="{{ .ImageLink}}" alt="image">
+                </div>
+                <div class="atcDescription">
+                    <h3>{{ .NameArmy}}</h3>
+                    <p>Равнина: {{.MinPlain}} - {{.MaxPlain}} км</p>
+                    <p>Горы/холмы: {{.MinMount}} - {{.MaxMount}} км</p>
+                    <p>Лес: {{.MinForest}} - {{.MaxForest}} км</p>
+                    <p>Река: {{.MinRiver}} - {{.MaxRiver}} км</p>
+                    <p>Пустыня: {{.MinDesert}} - {{.MaxDesert}} км</p>
+                </div>
+                <div class="atcButtons">
+                    <a href="/one_army/{{ .Id }}" class="redBTN atcBTN">Подробнее</a>
+                    <a href="#" class="redBTN atcBTN">Удалить</a>
+                </div>
+            </div>
+            {{ end }}
+
+
+        </div>
+
+        <div class="calculateFields">
+            <form action="#">
+                <select name="biome" value="{{.time.ChosenBiom}}">
+                    <option value="" disabled selected>Выберите тип местности</option>
+                    <option value="Plain" {{if eq .calc.ChosenBiom "Plain" }}selected{{end}}>Равнина</option>
+                    <option value="Mount" {{if eq .calc.ChosenBiom "Mount" }}selected{{end}}>Горы/холмы</option>
+                    <option value="Forest" {{if eq .calc.ChosenBiom "Forest" }}selected{{end}}>Лес</option>
+                    <option value="River" {{if eq .calc.ChosenBiom "River" }}selected{{end}}>Река</option>
+                    <option value="Desert" {{if eq .calc.ChosenBiom "Desert" }}selected{{end}}>Пустыня</option>
+                </select>
+                <input type="text" pattern="[0-9]{1,}" required placeholder="Пройденное расстояние"
+                    value="{{.time.Distance}}">
+                <button class="redBTN calculateBTN">Рассчитать</button>
+            </form>
+        </div>
+
+        <div class="resultReq">
+            <h2>Время перехода составляет от <span class="calcDays">{{ .time.ResultMin}}</span> до <span
+                    class="calcDays">{{.time.ResultMax}}</span> суток</h2>
+            <button class="redBTN deleteBTN">Удалить</button>
+        </div>
+
+    </div>
+</body>
+
+</html>

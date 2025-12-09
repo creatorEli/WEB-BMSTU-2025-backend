@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчёт дневного перехода армии</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+
+<body>
+    <a href="{{ .hrefToTT }}" class="timesBTN redBTN">Расчёт <span class="homeBTNcount">{{
+            .countArmiesTimeBTN}}</span></a>
+    <div class="wrapper">
+        <div class="header">
+            <div class="logo">
+                <a href="/armies">
+                    <img src="/static/images/logo.png" alt="">
+                </a>
+            </div>
+
+            <div class="headerBTNs">
+                <a href="/armies" class="homeBTN redBTN">Домой</a>
+            </div>
+        </div>
+    </div>
+    <div class="animalsRow">
+    </div>
+    <div class="wrapper">
+        <h1>{{ .army.NameArmy}}</h1>
+
+        <div class="oneArmySingle">
+            <div class="oasImage">
+                <img src="{{ .army.ImageArmyUrl}}" alt=" image">
+            </div>
+            <div class="oasInfo">
+                <div class="oasDescription">
+                    <h3>Скорость передвижения в сутки:</h3>
+                    <p>Равнина: {{.army.MinPlainSpeed}} - {{.army.MaxPlainSpeed}} км</p>
+                    <p>Горы/холмы: {{.army.MinMountSpeed}} - {{.army.MaxMountSpeed}} км</p>
+                    <p>Лес: {{.army.MinForestSpeed}} - {{.army.MaxForestSpeed}} км</p>
+                    <p>Река: {{.army.MinRiverSpeed}} - {{.army.MaxRiverSpeed}} км</p>
+                    <p>Пустыня: {{.army.MinDesertSpeed}} - {{.army.MaxDesertSpeed}} км</p>
+                </div>
+                <!--a href="#" class="redBTN oasBTN">Добавить</a-->
+            </div>
+        </div>
+
+    </div>
+    </div>
+</body>
+
+</html>

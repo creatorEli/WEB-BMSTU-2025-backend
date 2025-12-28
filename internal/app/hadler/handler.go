@@ -36,27 +36,14 @@ func NewHandler(r *repository.Repository, cfg *cfg.Config, redisClient *redis.Cl
 }
 
 func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутизация
-	// router.GET("/armies", h.GetArmies)                  // выводим все армии
-	// router.GET("/one_army/:id", h.GetArmy)              // выводим страницу с отдельной армией
-	// router.GET("/travel_time/:ttid", h.GetTravelTime)   // выводим страницу с текущим расчётом
-	// router.POST("/add_army_to_tt/:aaid", h.addArmyToTT) // добавляем армию в текущий расчет
-
-	// router.POST("/delete_tt/:ttid", h.deleteTT) // удаляем армию из текущего расчёта
-
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	// armies
-
-	//timeToTravel
-	//ПОЛУЧАТЬ ОТВЕТ ОБ ОТСТУТСТВИИ ЧЕРНОВИКА И БЕЗ ID
-
-	// Historian
 
 	// крч сперва публичные маршруты, а потом уже и защищённые
 
 	// действия, доступные всем (не используем проверку на роли):
 	//router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).GET("/api/armies", h.GetArmies) // список с фильтрацией
-	router.POST("/api/travel_time/:ttid/update_calc", h.CalculationCallback)
-
+	//router.POST("/api/travel_time/:ttid/update_calc", h.CalculationCallback)
+	// router.GET("/api/createArmies", h.CreateArmiesss) // разовый запрос на создание кучи армий
 	router.GET("/api/armies", h.GetArmies)                 // список с фильтрацией
 	router.GET("/api/army/:id", h.GetArmy)                 // одна запись
 	router.POST("/api/historian/reg", h.RegisterHistorian) //регистрация
@@ -65,6 +52,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутиза�
 	router.GET("/api/travel_time", h.GetTravelTimeDraft) // получить id черновика и кол-во услуг в нем
 
 	// действия, доступные авторизованным пользователям:
+
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).POST("/api/army/add_to_travel", h.addArmyToTT) // добавление армии в расчёт черновик
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).GET("/api/historian", h.GetHistorianInfo)      // GET полей пользователя после аутентификации (для личного кабинета)
 	router.Use(h.WithAuthCheck(role.Historian, role.Moderator)).PUT("/api/historian", h.UpdateHistorianInfo)   // PUT пользователя (личный кабинет)
@@ -85,6 +73,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) { // маршрутиза�
 	router.Use(h.WithAuthCheck(role.Moderator)).DELETE("/api/army/:id", h.DeleteArmy)                          // "удаление" Армии - смена статуса услуги на "удален"
 	router.Use(h.WithAuthCheck(role.Moderator)).POST("/api/army/:id/upload_image", h.uploadArmyImage)          // добавление изображения к армии
 	router.Use(h.WithAuthCheck(role.Moderator)).PUT("/api/travel_time/:ttid/moderate", h.ToModerateTravelTime) // завершить/отклонить модератором
+
+	router.Use(h.WithAuthCheck()).POST("/api/travel_time/:ttid/update_calc", h.CalculationCallback) // 22-й метод для асинхронного
 }
 
 // func (h *Handler) RegisterStatic(router *gin.Engine) {

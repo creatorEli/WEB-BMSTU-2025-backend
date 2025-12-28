@@ -143,6 +143,7 @@ func (r *Repository) CountArmiesInTime(idTT int) int64 {
 func (r *Repository) DeleteTT(TTid int) error {
 	// надо без ORM - юзаем курсоры
 	// в лабе 3 юзай ORM!!!
+
 	err := r.db.Model(&ds.TravelTime{}).Where("tt_id = ?", TTid).Update("status_tt", "удален").Error
 	if err != nil {
 		return fmt.Errorf("ошибка при удалении расчета c id %d: %w", TTid, err)

@@ -1,0 +1,44 @@
+func (h *Handler) GetArmies(c *gin.Context) {
+
+	logrus.Info("GetArmies!")
+
+	var armies []ds.Army
+
+	var err error
+	searchArmyQuery := c.Query("searchNameArmy")
+	filter := c.Query("class")
+
+	if searchArmyQuery != "" {
+		armies, err = h.Repository.GetArmyByTitle(searchArmyQuery)
+		if err != nil {
+			logrus.Error(err)
+		}
+		logrus.Info(armies)
+
+		c.JSON(http.StatusOK, gin.H{
+			"armies": armies,
+		})
+		return
+	}
+
+	if filter != "" {
+		armies, err = h.Repository.GetArmiesByClass(filter)
+		if err != nil {
+			logrus.Error(err)
+		}
+		logrus.Info(" I am here! ")
+		logrus.Info(armies)
+		c.JSON(http.StatusOK, gin.H{
+			"armies": armies,
+		})
+		return
+	}
+	armies, err = h.Repository.GetArmies()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"armies": armies,
+	})
+}

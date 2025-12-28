@@ -522,10 +522,10 @@ func (h *Handler) ToFormTravelTime(c *gin.Context) {
 		return
 	}
 
-	logrus.Info("we are here! 2")
+	//logrus.Info("we are here! 2")
 	// по сути пользователю нужно только заполнить поля ChosenBiomTT и DistanceTT и хотя бы одну запись в М:М
 	res, err := h.Repository.SetTravelTimeStatus(idTT, "сформирован")
-	logrus.Info("we are here! 3")
+	//logrus.Info("we are here! 3")
 	if err != nil {
 		logrus.Error(err)
 		c.JSON(400, gin.H{
@@ -682,21 +682,25 @@ func (h *Handler) ToModerateTravelTime(c *gin.Context) {
 	// }
 
 	// Отправляем в Django сервис (асинхронно)
-	go func() {
-		if err := h.sendToDjangoService(toDjangoReq); err != nil {
-			logrus.Errorf("Ошибка при отправке в Django сервис: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   err,
-				"message": "не удалось выполнить расчёт и обновить данные!",
-			})
-			return
-		}
-	}()
+	//go func() {
+	err = h.sendToDjangoService(toDjangoReq)
+	if err != nil {
+		logrus.Errorf("Ошибка при отправке в Django сервис: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "не удалось выполнить расчёт и обновить данные!",
+		})
+		return
+	} else {
+		c.JSON(http.StatusAccepted, gin.H{
+			"message": "Расчёт отправлен в асинхронную обработку",
+			//"travel_time": result,
+		})
+	}
+	//}()
 
-	c.JSON(http.StatusAccepted, gin.H{
-		"message": "Расчёт отправлен в асинхронную обработку",
-		//"travel_time": result,
-	})
+	//logrus.Info(err)
+
 }
 
 // Метод для отправки запроса в Django
@@ -732,7 +736,7 @@ func (h *Handler) sendToDjangoService(req toDjango) error {
 	defer resp.Body.Close()
 
 	// Обработка ответа
-	if resp.StatusCode != http.StatusAccepted {
+	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("async service returned error: %s", string(body))
 	}
@@ -742,7 +746,7 @@ func (h *Handler) sendToDjangoService(req toDjango) error {
 
 func (h *Handler) CalculationCallback(c *gin.Context) {
 	// Проверка авторизации по токену
-	logrus.Info("CalculationCallback has worked!! ", c.Param("ttid"))
+	//logrus.Info("CalculationCallback has worked!! ", c.Param("ttid"))
 	// Парсинг данных от Django
 	var callbackData ds.DjangoCallback
 	if err := c.ShouldBindJSON(&callbackData); err != nil {
@@ -750,7 +754,7 @@ func (h *Handler) CalculationCallback(c *gin.Context) {
 		return
 	}
 	logrus.Info("Получили ответ от django!!")
-	logrus.Info(callbackData.ResultMinTT)
+	//logrus.Info(callbackData.ResultMinTT)
 
 	resForBD, err := h.Repository.GetTravelTime(callbackData.TravelTimeID)
 	if err != nil {
@@ -760,7 +764,7 @@ func (h *Handler) CalculationCallback(c *gin.Context) {
 			"message": "не удалось выполнить расчёт и обновить данные!",
 		})
 	}
-	logrus.Info("callbackData.ResultMinTT = ", callbackData.ResultMinTT)
+	//logrus.Info("callbackData.ResultMinTT = ", callbackData.ResultMinTT)
 	//logrus.Info("callbackData.ResultMinTT = ", callbackData.result_min_tt)
 	resForBD.ResultMinTT = callbackData.ResultMinTT
 	resForBD.ResultMaxTT = callbackData.ResultMaxTT

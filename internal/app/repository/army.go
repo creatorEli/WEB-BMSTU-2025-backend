@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"strings"
 	"time_of_armies/internal/app/ds"
-
-	"github.com/sirupsen/logrus"
+	//"github.com/sirupsen/logrus"
 )
 
-func (r *Repository) GetArmies() ([]ds.Army, error) {
+func (r *Repository) GetArmies(offset, limit int, totalCount *int64) ([]ds.Army, error) {
 
 	var armies []ds.Army
-	err := r.db.Find(&armies).Error
+	err := r.db.Model(&ds.Army{}).Order("army_id").Count(totalCount).Error
 
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.db.Offset(offset).Limit(limit).Order("army_id").Find(&armies).Error
 	if err != nil {
 		return nil, err
 	}
@@ -33,21 +37,130 @@ func (r *Repository) GetArmy(id int) (ds.Army, error) {
 	return army, nil
 }
 
-func (r *Repository) GetArmyByTitle(title string) ([]ds.Army, error) {
+func (r *Repository) GetArmyByTitle(title string, offset, limit int, totalCount *int64) ([]ds.Army, error) {
 	var armies []ds.Army
-	err := r.db.Where("Name_Army ILIKE ?", "%"+title+"%").Find(&armies).Error
+	err := r.db.Model(&ds.Army{}).Where("name_army ILIKE ?", "%"+title+"%").Where("status_army = ?", "действует").Count(totalCount).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// 2. Затем получаем данные с пагинацией
+	err = r.db.Where("name_army ILIKE ?", "%"+title+"%").
+		Where("status_army = ?", "действует").
+		Offset(offset).
+		Limit(limit).
+		Order("army_id").
+		Find(&armies).Error
+
+	if err != nil {
+		return nil, err
+	}
+	// err := r.db.Where("Name_Army ILIKE ?", "%"+title+"%").Count(totalCount).Offset(offset).Limit(limit).Order("army_id").Find(&armies).Error
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return armies, nil
 }
 
-func (r *Repository) GetArmiesByClass(title string) ([]ds.Army, error) {
+func (r *Repository) GetArmiesByClass(title string, offset, limit int, totalCount *int64) ([]ds.Army, error) {
 	var armies []ds.Army
-	err := r.db.Where("Class_Army ILIKE ?", "%"+strings.ToLower(title)+"%").Find(&armies).Error
+	err := r.db.Model(&ds.Army{}).Where("class_army ILIKE ?", "%"+title+"%").Where("status_army = ?", "действует").Count(totalCount).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// 2. Затем получаем данные с пагинацией
+	err = r.db.Where("class_Army ILIKE ?", "%"+title+"%").
+		Where("status_army = ?", "действует").
+		Offset(offset).
+		Limit(limit).
+		Order("army_id").
+		Find(&armies).Error
+
+	if err != nil {
+		return nil, err
+	}
+	// err := r.db.Where("Class_Army ILIKE ?", "%"+strings.ToLower(title)+"%").Count(totalCount).Offset(offset).Limit(limit).Order("army_id").Find(&armies).Error
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return armies, nil
+}
+
+func (r *Repository) GetArmiesWithoutIndexation(name, class string, offset, limit int, totalCount *int64) ([]ds.Army, error) {
+	var armies []ds.Army
+	var results []struct {
+		ds.Army
+		TotalCount int64 `gorm:"column:total_count"`
+	}
+
+	tx := r.db.Begin()
+
+	// Устанавливаем параметры для отключения использования индексов
+	if err := tx.Exec("SET enable_indexscan = off").Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("ошибка отключения indexscan: %w", err)
+	}
+
+	if err := tx.Exec("SET enable_bitmapscan = off").Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("ошибка отключения bitmapscan: %w", err)
+	}
+
+	// 2. Выполняем основной запрос
+	query := `
+		SELECT *, COUNT(*) OVER() AS total_count
+		FROM armies 
+		WHERE class_army ILIKE ? AND name_army ILIKE ? AND status_army = 'действует'
+		ORDER BY army_id
+		LIMIT ? OFFSET ?
+	`
+
+	err := tx.Raw(query, "%"+strings.ToLower(class)+"%", "%"+strings.ToLower(name)+"%", limit, offset).Scan(&results).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("ошибка выполнения запроса: %w", err)
+	}
+
+	if len(results) > 0 {
+		*totalCount = results[0].TotalCount
+		// Преобразуем результаты в массив armies
+		for _, result := range results {
+			armies = append(armies, result.Army)
+		}
+	} else {
+		*totalCount = 0
+	}
+
+	// Восстанавливаем параметры
+	if err := tx.Exec("SET enable_indexscan = on").Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("ошибка включения indexscan: %w", err)
+	}
+
+	if err := tx.Exec("SET enable_bitmapscan = on").Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("ошибка включения bitmapscan: %w", err)
+	}
+
+	// Коммитим транзакцию
+	if err := tx.Commit().Error; err != nil {
+		return nil, fmt.Errorf("ошибка коммита транзакции: %w", err)
+	}
+
+	// query := `
+	// 	set enable_indexscan = off;
+	// 	set enable_bitmapscan = off;
+
+	// 	SELECT * FROM armies
+	// 	WHERE class_army ILIKE ? AND name_army ILIKE ?
+	// 	ORDER BY army_id
+	// 	LIMIT ? OFFSET ?
+	// `
+	// class = "%" + strings.ToLower(class) + "%"
+	// name = "%" + strings.ToLower(name) + "%"
+	// err := r.db.Exec(query, class, name, limit, offset).Scan(&armies).Error
+
 	return armies, nil
 }
 
@@ -108,7 +221,7 @@ func (r *Repository) CheckIfArmyAlreadyInTT(idArmy int, idTT int) bool {
 
 func (r *Repository) AddArmy(army ds.Army) (ds.Army, error) {
 	err := r.db.Create(&army).Error
-	logrus.Info(army.ArmyID)
+	//logrus.Info(army.ArmyID)
 	if err != nil {
 		fmt.Errorf("ошибка при добавлении армии в БД!: %w", err)
 		return ds.Army{}, err

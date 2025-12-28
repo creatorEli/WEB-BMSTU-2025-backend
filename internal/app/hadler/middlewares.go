@@ -18,14 +18,13 @@ const jwtPrefix = "Bearer "
 
 func (h *Handler) WithAuthCheck(assignRoles ...role.Role) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		logrus.Info("got in WithAuthCheck")
+		//logrus.Info("got in WithAuthCheck")
 		jwtStr := c.GetHeader("Authorization")
 		if jwtStr == "Bearer 12345678" {
-			logrus.Info("token from Django")
+			logrus.Info(jwtStr)
 			c.Next()
 			return
 		}
-		logrus.Info(jwtStr)
 		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
 			//c.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
 			c.JSON(http.StatusForbidden, gin.H{
@@ -100,7 +99,7 @@ func (h *Handler) WithAuthCheck(assignRoles ...role.Role) func(c *gin.Context) {
 			log.Printf("role %v is not assigned in %v", myClaims.Role, assignRoles)
 			return
 		}
-		logrus.Info(h.config.JWT.ExpiresIn)
+		//logrus.Info(h.config.JWT.ExpiresIn)
 		// Если роль найдена в разрешенных - продолжаем выполнение
 		c.Next()
 	}

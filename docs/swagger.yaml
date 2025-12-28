@@ -117,12 +117,32 @@ definitions:
       message:
         $ref: '#/definitions/handler.loginResp'
     type: object
+  handler.Paginationn:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        format: int64
+        type: integer
+      totalPages:
+        format: int64
+        type: integer
+    type: object
   handler.ResArmies:
     properties:
       armies:
         items:
           $ref: '#/definitions/ds.Army'
         type: array
+      pagination:
+        $ref: '#/definitions/handler.Paginationn'
+      queryTimeMs:
+        format: int64
+        type: integer
+      queryWithIndex:
+        type: boolean
     type: object
   handler.ResDraftSw:
     properties:
@@ -240,7 +260,8 @@ paths:
       consumes:
       - application/json
       description: Получить список армий, включая фильтрацию (param "class") и поисковый
-        запрос (param "searchNameArmy")
+        запрос (param "searchNameArmy") а также пагинацию (param "page") и число записей
+        на страцие (param "limit")
       parameters:
       - description: фильтрация
         in: query
@@ -250,6 +271,18 @@ paths:
         in: query
         name: searchNameArmy
         type: string
+      - description: страница
+        in: query
+        name: page
+        type: string
+      - description: число записей на страницу
+        in: query
+        name: limit
+        type: string
+      - description: число записей на страницу
+        in: query
+        name: withIndexation
+        type: boolean
       produces:
       - application/json
       responses:

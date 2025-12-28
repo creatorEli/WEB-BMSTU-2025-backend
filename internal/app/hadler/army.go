@@ -4,6 +4,7 @@ import (
 	//"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 	"time_of_armies/internal/app/ds"
 
 	_ "time_of_armies/docs"
@@ -12,106 +13,163 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ResArmies struct {
-	Armies []ds.Army
+type Paginationn struct {
+	Page       int
+	Limit      int
+	Total      int64
+	TotalPages int64
 }
 
-//var creatorID = 1 // хардкод пока нету функцонала юзера
-// переделать на singleton юзера!
+type ResArmies struct {
+	Armies         []ds.Army
+	Pagination     Paginationn
+	QueryTimeMs    int64
+	QueryWithIndex bool
+}
 
 // GetArmies godoc
 // @Summary      Получить список армий
-// @Description  Получить список армий, включая фильтрацию (param "class") и поисковый запрос (param "searchNameArmy")
+// @Description  Получить список армий, включая фильтрацию (param "class") и поисковый запрос (param "searchNameArmy") а также пагинацию (param "page") и число записей на страцие (param "limit")
 // @Tags         Requests
 // @Accept 		 json
 // @Produce      json
 // Param [name] [type] [dataType] [required] [description]
 // @Param		 class query string false "фильтрация"
 // @Param 		 searchNameArmy query string false "поиск армии"
+// @Param		 page query string false "страница"
+// @Param		 limit query string false "число записей на страницу"
+// @Param		 withIndexation query bool false "число записей на страницу"
 // @Success      200 {object} ResArmies
 // @Router       /armies [get]
 func (h *Handler) GetArmies(c *gin.Context) {
-
 	logrus.Info("GetArmies!")
+	startTime := time.Now()
 
-	// если есть расчёт черновик у юзера, то добавляем ссылку, иначе впихиваем якорь и нуль число
+	withIndexation := c.Query("withIndexation")
+	logrus.Info("withIndexation = ", withIndexation)
 
-	var armies []ds.Army
+	// Параметры пагинации
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "12"))
 
-	var err error
+	offset := (page - 1) * limit
+
+	if limit > 120 {
+		limit = 120 // ограничение на количество записей
+	}
+
 	searchArmyQuery := c.Query("searchNameArmy")
 	filter := c.Query("class")
+	var totalCount int64
 
-	if searchArmyQuery != "" {
-		armies, err = h.Repository.GetArmyByTitle(searchArmyQuery)
+	if withIndexation == "true" {
+		var armies []ds.Army
+		var err error
+
+		if searchArmyQuery != "" {
+			armies, err = h.Repository.GetArmyByTitle(searchArmyQuery, offset, limit, &totalCount)
+			if err != nil {
+				logrus.Error(err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			duration := time.Since(startTime)
+			pagRes := Paginationn{
+				page, limit, totalCount, (totalCount + int64(limit) - 1) / int64(limit),
+			}
+			armRes := ResArmies{
+				armies, pagRes, duration.Milliseconds(), true,
+			}
+			c.JSON(http.StatusOK, armRes)
+			return
+		}
+
+		if filter != "" {
+			armies, err = h.Repository.GetArmiesByClass(filter, offset, limit, &totalCount)
+			if err != nil {
+				logrus.Error(err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			duration := time.Since(startTime)
+			pagRes := Paginationn{
+				page, limit, totalCount, (totalCount + int64(limit) - 1) / int64(limit),
+			}
+			armRes := ResArmies{
+				armies, pagRes, duration.Milliseconds(), true,
+			}
+			c.JSON(http.StatusOK, armRes)
+			// c.JSON(http.StatusOK, gin.H{
+			// 	"armiess": armies,
+			// 	"pagination": gin.H{
+			// 		"page":       page,
+			// 		"limit":      limit,
+			// 		"total":      totalCount,
+			// 		"totalPages": (totalCount + int64(limit) - 1) / int64(limit),
+			// 	},
+			// 	"query_time_ms":    duration.Milliseconds(),
+			// 	"query_with_index": true, // для тестирования производительности
+			// })
+			return
+		}
+		armies, err = h.Repository.GetArmies(offset, limit, &totalCount)
 		if err != nil {
 			logrus.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
-		logrus.Info(armies)
-		// c.HTML(http.StatusOK, "armies.html", gin.H{
-		// 	"armies":             armies,
-		// 	"armySearchQuery":    searchArmyQuery,
-		// 	"countArmiesTimeBTN": armiesInDraft,
-		// 	"hrefToTT":           href,
+
+		duration := time.Since(startTime)
+		pagRes := Paginationn{
+			page, limit, totalCount, (totalCount + int64(limit) - 1) / int64(limit),
+		}
+		armRes := ResArmies{
+			armies, pagRes, duration.Milliseconds(), true,
+		}
+		c.JSON(http.StatusOK, armRes)
+		// c.JSON(http.StatusOK, gin.H{
+		// 	"armies": armies,
+		// 	"pagination": gin.H{
+		// 		"page":       page,
+		// 		"limit":      limit,
+		// 		"total":      totalCount,
+		// 		"totalPages": (totalCount + int64(limit) - 1) / int64(limit),
+		// 	},
+		// 	"query_time_ms":    duration.Milliseconds(),
+		// 	"query_with_index": true, // для тестирования производительности
 		// })
-
-		// armiesJSON, err := json.Marshal(armies)
-		// if err != nil {
-		// 	logrus.Error("не удалось перевести массив структур в джейсон форман")
-		// }
-		//
-		c.JSON(http.StatusOK, gin.H{
-			"armies": armies,
-			//"armySearchQuery": searchArmyQuery,
-		})
-		return
-	}
-
-	if filter != "" {
-		armies, err = h.Repository.GetArmiesByClass(filter)
+	} else { // ЕСЛИ ОТКЛЮЧИЛИ ИНДЕКСАЦИЮ
+		armies, err := h.Repository.GetArmiesWithoutIndexation(searchArmyQuery, filter, offset, limit, &totalCount)
 		if err != nil {
 			logrus.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
-		logrus.Info(" I am here! ")
-		// armiesJSON, err := json.Marshal(armies)
-		// if err != nil {
-		// 	logrus.Error("не удалось перевести массив структур в джейсон форман")
-		// }
-		logrus.Info(armies)
-		c.JSON(http.StatusOK, gin.H{
-			"armies": armies,
-			//"armySearchQuery": searchArmyQuery,
-		})
-		// c.HTML(http.StatusOK, "armies.html", gin.H{
-		// 	"armies":             armies,
-		// 	"countArmiesTimeBTN": armiesInDraft,
-		// 	"hrefToTT":           href,
-		// })
-		return
-	}
-	armies, err = h.Repository.GetArmies()
-	if err != nil {
-		logrus.Error(err)
-	}
-	// armiesJSON, err := json.Marshal(armies)
-	// if err != nil {
-	// 	logrus.Error("не удалось перевести массив структур в джейсон форман")
-	// }
-	// var narm []ds.Army
-	// re := json.Unmarshal(armiesJSON, &narm)
-	// if re != nil {
-	// 	return
-	// }
 
-	c.JSON(http.StatusOK, gin.H{
-		"armies": armies,
-		//"armySearchQuery": searchArmyQuery,
-	})
-	// c.HTML(http.StatusOK, "armies.html", gin.H{
-	// 	"armies":             armies,
-	// 	"countArmiesTimeBTN": armiesInDraft,
-	// 	"hrefToTT":           href,
-	// })
+		//logrus.Info("totalCount = ", totalCount)
+
+		duration := time.Since(startTime)
+		pagRes := Paginationn{
+			page, limit, totalCount, (totalCount + int64(limit) - 1) / int64(limit),
+		}
+		armRes := ResArmies{
+			armies, pagRes, duration.Milliseconds(), false,
+		}
+		c.JSON(http.StatusOK, armRes)
+		// c.JSON(http.StatusOK, gin.H{
+		// 	"data": armies,
+		// 	"pagination": gin.H{
+		// 		"page":       page,
+		// 		"limit":      limit,
+		// 		"total":      totalCount,
+		// 		"totalPages": (totalCount + int64(limit) - 1) / int64(limit),
+		// 	},
+		// 	"query_time_ms":    duration.Milliseconds(),
+		// 	"query_with_index": false,
+		// })
+
+	}
+
 }
 
 // GetArmy godoc

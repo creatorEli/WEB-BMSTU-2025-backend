@@ -24,7 +24,7 @@ const docTemplate = `{
     "paths": {
         "/armies": {
             "get": {
-                "description": "Получить список армий, включая фильтрацию (param \"class\") и поисковый запрос (param \"searchNameArmy\")",
+                "description": "Получить список армий, включая фильтрацию (param \"class\") и поисковый запрос (param \"searchNameArmy\") а также пагинацию (param \"page\") и число записей на страцие (param \"limit\")",
                 "consumes": [
                     "application/json"
                 ],
@@ -46,6 +46,24 @@ const docTemplate = `{
                         "type": "string",
                         "description": "поиск армии",
                         "name": "searchNameArmy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "страница",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "число записей на страницу",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "число записей на страницу",
+                        "name": "withIndexation",
                         "in": "query"
                     }
                 ],
@@ -943,6 +961,25 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.Paginationn": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "totalPages": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
         "handler.ResArmies": {
             "type": "object",
             "properties": {
@@ -951,6 +988,16 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ds.Army"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/handler.Paginationn"
+                },
+                "queryTimeMs": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "queryWithIndex": {
+                    "type": "boolean"
                 }
             }
         },
